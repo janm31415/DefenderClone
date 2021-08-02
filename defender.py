@@ -43,8 +43,8 @@ class Sprite:
 spacecraft = Sprite()
 
 def init_spacecraft():
-  spacecraft.x = 64
-  spacecraft.y = 40
+  spacecraft.x = WIDTH//(2*pixel_size)
+  spacecraft.y = HEIGHT//(2*pixel_size)
   spacecraft.w = 16
   spacecraft.h = 6
   spacecraft.dir = -1
