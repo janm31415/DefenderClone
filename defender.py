@@ -20,8 +20,8 @@ planet_y = []
 
 gray = (80,80,80)
 red = (255,0,0)
-green=(0,255,0)
-yellow=(255,255,0)
+green=(0,200,0)
+yellow=(255,200,0)
 pink=(252,3,211)
 white=(255,255,255)
 blue = (0,0,255)
@@ -195,7 +195,63 @@ def draw_manti(px, py, t):
   fill_pixel(px+3, py+3, green)
   fill_pixel(px+4, py+4, green)  
 
+def draw_human(px, py, dir):
+  fill_pixel(px, py, brown)
+  fill_pixel(px, py+1, brown)
+  fill_pixel(px+1, py, pink)
+  fill_pixel(px+1, py+1, pink)
+  fill_pixel(px-1, py, pink)
+  fill_pixel(px-1, py+1, pink)
+  fill_pixel(px, py+2, brown)
+  fill_pixel(px, py+3, brown)
+  fill_pixel(px, py+4, brown)
+  fill_pixel(px-dir, py-1, pink)
+  fill_pixel(px+dir, py-1, yellow)
+  fill_pixel(px, py-1, green)
+  fill_pixel(px+dir, py-2, yellow)
+  fill_pixel(px, py-2, green)
+  fill_pixel(px+dir, py-3, green)
+  fill_pixel(px, py-3, green)  
 
+def draw_mutant(px, py, t):
+  d = (t//10 % 2)*2 - 1
+
+  fill_pixel(px+3, py, green)
+  fill_pixel(px+3, py-1, green)
+  fill_pixel(px-3, py, green)
+  fill_pixel(px-3, py-1, green)
+
+
+  fill_pixel(px-2, py-2, green)
+  fill_pixel(px+2, py-2, green)
+  fill_pixel(px-2, py+1, green)
+  fill_pixel(px+2, py+1, green)
+  fill_pixel(px-1, py+1, yellow)
+  fill_pixel(px+1, py+1, yellow)
+  fill_pixel(px-2, py+2, green)
+  fill_pixel(px-3, py+3, green)
+  fill_pixel(px-4, py+4, green)
+  fill_pixel(px+2, py+2, green)
+  fill_pixel(px+3, py+3, green)
+  fill_pixel(px+4, py+4, green)  
+
+  fill_pixel(px, py, brown)
+  fill_pixel(px, py+1, brown)
+  fill_pixel(px+1, py, pink)
+  fill_pixel(px+1, py+1, pink)
+  fill_pixel(px-1, py, pink)
+  fill_pixel(px-1, py+1, pink)
+  fill_pixel(px, py+2, brown)
+  fill_pixel(px, py+3, brown)
+  fill_pixel(px, py+4, brown)
+  fill_pixel(px-d, py-1, pink)
+  fill_pixel(px+d, py-1, blue)
+  fill_pixel(px, py-1, blue)
+  fill_pixel(px+d, py-2, blue)
+  fill_pixel(px, py-2, blue)
+  fill_pixel(px+d, py-3, blue)
+  fill_pixel(px, py-3, blue)  
+  
 
 def update():
   global screen_x
@@ -225,6 +281,8 @@ def draw():
   draw_planet()
   draw_defender(x, y, dir)
   draw_manti(40, 40, timer)
+  draw_human(80, 40, -1)
+  draw_mutant(100, 40, timer)
 
 build_planet()
 pgzrun.go()
