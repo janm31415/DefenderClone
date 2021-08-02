@@ -18,6 +18,8 @@ max_planet_y = 100
 planet_x = []
 planet_y = []
 
+speed_x = 0
+
 gray = (80,80,80)
 red = (255,0,0)
 green=(0,200,0)
@@ -304,11 +306,16 @@ def update():
   global screen_x
   global spacecraft
   global timer
+  global speed_x
   if keyboard.left:
-    screen_x = (screen_x - 10)%max_planet_x
+    speed_x -= 0.4
+    if speed_x < -20:
+      speed_x = -20
     spacecraft.dir = 1
   if keyboard.right:
-    screen_x = (screen_x + 10)%max_planet_x
+    speed_x += 0.4
+    if speed_x > 20:
+      speed_x = 20
     spacecraft.dir = -1
   if keyboard.up:
     spacecraft.y = spacecraft.y - 1
@@ -318,6 +325,11 @@ def update():
     spacecraft.y = spacecraft.y + 1
     if spacecraft.y > HEIGHT/pixel_size-4:
       spacecraft.y = HEIGHT/pixel_size-4
+  screen_x = (screen_x + speed_x)%max_planet_x      
+  if speed_x < 0:
+    speed_x += min(0.1, -speed_x)
+  elif speed_x > 0:    
+    speed_x -= min(0.1, speed_x)
   timer = timer + 1
 
 def draw_humans():
