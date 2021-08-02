@@ -1,13 +1,11 @@
 import pgzrun
 import random
 
-pixel_size = 5
+pixel_size = 3
 
-#x = 64
-#y = 40
+WIDTH = 640 - (640%pixel_size)
+HEIGHT = 400 - (400%pixel_size)
 
-WIDTH = 640
-HEIGHT = 400
 TITLE = "Defender"
 
 screen_x = 0
@@ -33,8 +31,7 @@ black=(0,0,0)
 timer = 0
 
 humans = []
-
-manti = []
+mantis = []
 
 class Sprite:
   x = 0
@@ -64,8 +61,8 @@ def init_humans(nr):
     h.dir = random.randint(0, 1)*2-1
     humans.append(h)
 
-def init_manti(nr):
-  global manti
+def init_mantis(nr):
+  global mantis
   manti = []
   for i in range(0, nr):
     h = Sprite()
@@ -74,7 +71,7 @@ def init_manti(nr):
     h.w = 8
     h.h = 8
     h.dir = random.randint(0, 1)*2-1
-    manti.append(h)
+    mantis.append(h)
 
 
 def build_planet():
@@ -355,11 +352,11 @@ def draw_humans():
     draw_human(x, humans[i].y, humans[i].dir)
     
 def draw_mantis():
-  for i in range(0, len(manti)):
-    x = manti[i].x - screen_x/pixel_size
+  for i in range(0, len(mantis)):
+    x = mantis[i].x - screen_x/pixel_size
     if x < 0:
       x += max_planet_x/pixel_size
-    draw_manti(x, manti[i].y, timer)
+    draw_manti(x, mantis[i].y, timer)
     
 
 def draw():
@@ -369,8 +366,6 @@ def draw():
   draw_defender(spacecraft.x, spacecraft.y, spacecraft.dir)
   draw_humans()
   draw_mantis()
-  #draw_manti(40, 40, timer)
-  #draw_human(80, 40, -1)
   #draw_mutant(100, 40, timer)
   #draw_bullet(120, 40)
   
@@ -378,7 +373,7 @@ def init_game():
   build_planet()
   init_spacecraft()
   init_humans(6)
-  init_manti(6)
+  init_mantis(6)
 
 init_game()
 pgzrun.go()
