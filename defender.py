@@ -3,8 +3,8 @@ import random
 
 pixel_size = 5
 
-x = 64
-y = 40
+#x = 64
+#y = 40
 
 WIDTH = 640
 HEIGHT = 400
@@ -28,10 +28,37 @@ blue = (0,0,255)
 brown=(150, 75, 0)
 black=(0,0,0)
 
-dir = -1
-
 timer = 0
 
+humans = []
+
+class Sprite:
+  x = 0
+  y = 0
+  w = 0
+  h = 0
+  dir = 1
+  
+spacecraft = Sprite()
+
+def init_spacecraft():
+  spacecraft.x = 64
+  spacecraft.y = 40
+  spacecraft.w = 16
+  spacecraft.h = 6
+  spacecraft.dir = -1
+  
+def init_humans():
+  global humans
+  humans = []
+  for i in range(0, 6):
+    h = Sprite()
+    h.x = random.randint(0, max_planet_x/pixel_size)
+    h.y = HEIGHT/pixel_size - 5 - random.randint(0, 10)
+    h.w = 4
+    h.h = 8
+    h.dir = random.randint(0, 1)*2-1
+    humans.append(h)
 
 def build_planet():
   print("Building a planet...", flush=True)
@@ -252,37 +279,69 @@ def draw_mutant(px, py, t):
   fill_pixel(px+d, py-3, blue)
   fill_pixel(px, py-3, blue)  
   
+def random_bullet_color():
+  r = random.randint(0, 3)
+  if r == 0:
+    return white
+  if r == 1:
+    return red
+  if r == 2:
+    return yellow
+  if r == 3:
+    return gray
+  return white
+  
+
+def draw_bullet(px, py):
+  fill_pixel(px, py, random_bullet_color())
+  fill_pixel(px, py-1, random_bullet_color())
+  fill_pixel(px-1, py, random_bullet_color())
+  fill_pixel(px, py+1, random_bullet_color())
+  fill_pixel(px+1, py, random_bullet_color())
+
 
 def update():
   global screen_x
-  global y
-  global dir
+  global spacecraft
   global timer
   if keyboard.left:
     screen_x = (screen_x - 10)%max_planet_x
-    dir = 1
+    spacecraft.dir = 1
   if keyboard.right:
     screen_x = (screen_x + 10)%max_planet_x
-    dir = -1
+    spacecraft.dir = -1
   if keyboard.up:
-    y = y - 1
-    if y < 4:
-      y = 4
+    spacecraft.y = spacecraft.y - 1
+    if spacecraft.y < 4:
+      spacecraft.y = 4
   if keyboard.down:
-    y = y + 1
-    if y > HEIGHT/pixel_size-4:
-      y = HEIGHT/pixel_size-4
+    spacecraft.y = spacecraft.y + 1
+    if spacecraft.y > HEIGHT/pixel_size-4:
+      spacecraft.y = HEIGHT/pixel_size-4
   timer = timer + 1
 
+def draw_humans():
+  for i in range(0, len(humans)):
+    x = humans[i].x - screen_x/pixel_size
+    if x < 0:
+      x += max_planet_x/pixel_size
+    draw_human(x, humans[i].y, humans[i].dir)
 
 def draw():
   screen.fill('black')
   screen.draw.text("Hello", topleft=(10,10))
   draw_planet()
-  draw_defender(x, y, dir)
-  draw_manti(40, 40, timer)
-  draw_human(80, 40, -1)
-  draw_mutant(100, 40, timer)
+  draw_defender(spacecraft.x, spacecraft.y, spacecraft.dir)
+  draw_humans()
+  #draw_manti(40, 40, timer)
+  #draw_human(80, 40, -1)
+  #draw_mutant(100, 40, timer)
+  #draw_bullet(120, 40)
+  
+def init_game():
+  build_planet()
+  init_spacecraft()
+  init_humans()
 
-build_planet()
+init_game()
 pgzrun.go()
