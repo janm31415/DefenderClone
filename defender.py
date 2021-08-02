@@ -34,6 +34,8 @@ timer = 0
 
 humans = []
 
+manti = []
+
 class Sprite:
   x = 0
   y = 0
@@ -50,10 +52,10 @@ def init_spacecraft():
   spacecraft.h = 6
   spacecraft.dir = -1
   
-def init_humans():
+def init_humans(nr):
   global humans
   humans = []
-  for i in range(0, 6):
+  for i in range(0, nr):
     h = Sprite()
     h.x = random.randint(0, max_planet_x/pixel_size)
     h.y = HEIGHT/pixel_size - 5 - random.randint(0, 10)
@@ -61,6 +63,19 @@ def init_humans():
     h.h = 8
     h.dir = random.randint(0, 1)*2-1
     humans.append(h)
+
+def init_manti(nr):
+  global manti
+  manti = []
+  for i in range(0, nr):
+    h = Sprite()
+    h.x = random.randint(64, max_planet_x/pixel_size)
+    h.y = random.randint(5, HEIGHT/pixel_size-5)
+    h.w = 8
+    h.h = 8
+    h.dir = random.randint(0, 1)*2-1
+    manti.append(h)
+
 
 def build_planet():
   print("Building a planet...", flush=True)
@@ -338,6 +353,14 @@ def draw_humans():
     if x < 0:
       x += max_planet_x/pixel_size
     draw_human(x, humans[i].y, humans[i].dir)
+    
+def draw_mantis():
+  for i in range(0, len(manti)):
+    x = manti[i].x - screen_x/pixel_size
+    if x < 0:
+      x += max_planet_x/pixel_size
+    draw_manti(x, manti[i].y, timer)
+    
 
 def draw():
   screen.fill('black')
@@ -345,6 +368,7 @@ def draw():
   draw_planet()
   draw_defender(spacecraft.x, spacecraft.y, spacecraft.dir)
   draw_humans()
+  draw_mantis()
   #draw_manti(40, 40, timer)
   #draw_human(80, 40, -1)
   #draw_mutant(100, 40, timer)
@@ -353,7 +377,8 @@ def draw():
 def init_game():
   build_planet()
   init_spacecraft()
-  init_humans()
+  init_humans(6)
+  init_manti(6)
 
 init_game()
 pgzrun.go()
