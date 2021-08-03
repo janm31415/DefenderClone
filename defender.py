@@ -35,6 +35,9 @@ timer = 0
 gameover = 0
 space_is_pressed = 0
 
+mantis_speed = 0.5
+mutant_speed = 1
+
 humans = []
 mantis = []
 lasers = []
@@ -103,7 +106,12 @@ def reset_mantis():
   global mantis
   for i in range(0, len(mantis)):    
     mantis[i].x = random.randint(WIDTH//pixel_size, max_planet_x/pixel_size)
-    mantis[i].y = random.randint(5, HEIGHT/pixel_size-5)  
+    #mantis[i].y = random.randint(5, HEIGHT/pixel_size-5)  
+
+def reset_mutants():
+  global mutants
+  for i in range(0, len(mutants)):    
+    mutants[i].x = random.randint(WIDTH//pixel_size, max_planet_x/pixel_size)
 
 
 def init_wave(w):
@@ -425,6 +433,15 @@ def check_mantis_spacecraft_collisions():
       if collide(mantis[i], spacecraft):
         spacecraft_dead()
         
+def check_mutants_spacecraft_collisions():  
+  global mutants
+  global spacecraft
+  for i in range(0, len(mutants)):
+    if (mutants[i].alive != 0) and (spacecraft.alive != 0):
+      if collide(mutants[i], spacecraft):
+        spacecraft_dead()
+        
+        
 def check_mantis_laser_collisions():
   global score
   global mantis
@@ -439,6 +456,20 @@ def check_mantis_laser_collisions():
           if (mantis[i].state == 1):
             humans[i].state = 2
           lasers.pop(j)
+          
+def check_mutants_laser_collisions():
+  global score
+  global mutants
+  global lasers
+  for i in range(0, len(mutants)):
+    if (mutants[i].alive != 0):
+      for j in reversed(range(0, len(lasers))):
+        if collide(mutants[i], lasers[j]):
+          mutants[i].alive = 0
+          add_explosion(mutants[i].x, mutants[i].y)
+          score = score + 200
+          lasers.pop(j)
+          
 
 def check_human_laser_collisions():
   global score
@@ -466,8 +497,10 @@ def check_mantis_humans_collisions():
 def check_collisions():
   check_human_laser_collisions()
   check_mantis_laser_collisions()  
+  check_mutants_laser_collisions()  
   check_human_spacecraft_collisions()
   check_mantis_spacecraft_collisions()
+  check_mutants_spacecraft_collisions()
   check_mantis_humans_collisions()
 
 def update_explosions():
@@ -509,6 +542,7 @@ def reset_spacecraft():
   init_spacecraft()
   screen_x = 0
   reset_mantis()
+  reset_mutants()
   
   
 def spacecraft_shoots_laser():
@@ -555,6 +589,7 @@ def update_mantis():
   global mantis
   global mutants
   global humans
+  global mantis_speed
   for i in range(0, len(mantis)):
     if mantis[i].alive != 0:
       if mantis[i].state == 0:
@@ -568,8 +603,8 @@ def update_mantis():
             py = 0
           else:
             px = 0           
-          mantis[i].x += clamp(px,-0.3,0.3)
-          mantis[i].y += clamp(py,-0.3,0.3)
+          mantis[i].x += clamp(px,-mantis_speed,mantis_speed)
+          mantis[i].y += clamp(py,-mantis_speed,mantis_speed)
         else:
           px = move_from_to_x(mantis[i], humans[j])
           py = move_from_to_y(mantis[i], humans[j])
@@ -577,8 +612,8 @@ def update_mantis():
             py = 0
           else:
             px = 0          
-          mantis[i].x += clamp(px, -0.3, 0.3)
-          mantis[i].y += clamp(py, -0.3, 0.3)
+          mantis[i].x += clamp(px, -mantis_speed, mantis_speed)
+          mantis[i].y += clamp(py, -mantis_speed, mantis_speed)
         if mantis[i].x > max_planet_x/pixel_size:
           mantis[i].x -= max_planet_x/pixel_size
         if mantis[i].x < 0:
@@ -596,6 +631,21 @@ def update_mantis():
           mutant.state = 0
           mutants.append(mutant)
           humans[i].alive = 0
+  
+def update_mutants():
+  global mutants
+  global mutant_speed
+  for i in range(0, len(mutants)):
+    if mutants[i].alive != 0:
+      px = move_from_to_x(mutants[i], spacecraft)
+      py = move_from_to_y(mutants[i], spacecraft)
+      if abs(px)>abs(py):
+        py = 0
+      else:
+        px = 0           
+      mutants[i].x += clamp(px,-mutant_speed,mutant_speed)
+      mutants[i].y += clamp(py,-mutant_speed,mutant_speed)
+
   
   
 def update_humans():
@@ -672,6 +722,7 @@ def update():
     if spacecraft.alive == 0:
       speed_x = 0
   update_mantis()
+  update_mutants()
   update_humans()
   update_explosions()    
   check_collisions()
