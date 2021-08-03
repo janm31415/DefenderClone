@@ -39,15 +39,18 @@ class Sprite:
   w = 0
   h = 0
   dir = 1
+  alive = 0
   
 spacecraft = Sprite()
 
 def init_spacecraft():
+  global spacecraft
   spacecraft.x = WIDTH//(2*pixel_size)
   spacecraft.y = HEIGHT//(2*pixel_size)
   spacecraft.w = 16
   spacecraft.h = 6
   spacecraft.dir = -1
+  spacecraft.alive = 1
   
 def init_humans(nr):
   global humans
@@ -59,6 +62,7 @@ def init_humans(nr):
     h.w = 4
     h.h = 8
     h.dir = random.randint(0, 1)*2-1
+    h.alive = 1
     humans.append(h)
 
 def init_mantis(nr):
@@ -66,11 +70,12 @@ def init_mantis(nr):
   manti = []
   for i in range(0, nr):
     h = Sprite()
-    h.x = random.randint(64, max_planet_x/pixel_size)
+    h.x = random.randint(WIDTH//pixel_size, max_planet_x/pixel_size)
     h.y = random.randint(5, HEIGHT/pixel_size-5)
     h.w = 8
     h.h = 8
     h.dir = random.randint(0, 1)*2-1
+    h.alive = 1
     mantis.append(h)
 
 
@@ -314,34 +319,69 @@ def draw_bullet(px, py):
   fill_pixel(px+1, py, random_bullet_color())
 
 
+def collide(a, b):
+  ax = a.x - a.w/2
+  ay = a.y - a.h/2
+  ax2 = a.x + a.w/2
+  ay2 = a.y + a.h/2
+  bx = b.x - b.w/2
+  by = b.y - b.h/2
+  bx2 = b.x + b.w/2
+  by2 = b.y + b.h/2
+  if (ax < bx2) and (ax2 > bx) and (ay < by2) and (ay2 > by):
+    return True
+  return False
+
+def check_human_spacecraft_collisions():
+  global humans
+  for i in range(0, len(humans)):
+    if (humans[i].alive != 0) and (spacecraft.alive != 0):
+      if collide(humans[i], spacecraft):
+        humans[i].alive = 0
+        print("Collision between ship and human", flush=True)
+
+def check_mantis_spacecraft_collisions():  
+  for i in range(0, len(mantis)):
+    if (mantis[i].alive != 0) and (spacecraft.alive != 0):
+      if collide(mantis[i], spacecraft):
+        spacecraft.alive = 0
+        print("Collision between ship and mantis", flush=True)
+
+
+def check_collisions():
+  check_human_spacecraft_collisions()
+  check_mantis_spacecraft_collisions()
+
 def update():
   global screen_x
   global spacecraft
   global timer
   global speed_x
-  if keyboard.left:
+  if keyboard.left and (spacecraft.alive!=0):
     speed_x -= 0.4
     if speed_x < -20:
       speed_x = -20
     spacecraft.dir = 1
-  if keyboard.right:
+  if keyboard.right and (spacecraft.alive!=0):
     speed_x += 0.4
     if speed_x > 20:
       speed_x = 20
     spacecraft.dir = -1
-  if keyboard.up:
+  if keyboard.up and (spacecraft.alive!=0):
     spacecraft.y = spacecraft.y - 1
     if spacecraft.y < 4:
       spacecraft.y = 4
-  if keyboard.down:
+  if keyboard.down and (spacecraft.alive!=0):
     spacecraft.y = spacecraft.y + 1
     if spacecraft.y > HEIGHT/pixel_size-4:
       spacecraft.y = HEIGHT/pixel_size-4
-  screen_x = (screen_x + speed_x)%max_planet_x      
+  screen_x = (screen_x + speed_x)%max_planet_x   
+  spacecraft.x = ((spacecraft.x*pixel_size + speed_x)%max_planet_x)/pixel_size
   if speed_x < 0:
     speed_x += min(0.1, -speed_x)
   elif speed_x > 0:    
     speed_x -= min(0.1, speed_x)
+  check_collisions()
   timer = timer + 1
 
 def draw_humans():
@@ -349,21 +389,27 @@ def draw_humans():
     x = humans[i].x - screen_x/pixel_size
     if x < 0:
       x += max_planet_x/pixel_size
-    draw_human(x, humans[i].y, humans[i].dir)
+    if humans[i].alive != 0:
+      draw_human(x, humans[i].y, humans[i].dir)
     
 def draw_mantis():
   for i in range(0, len(mantis)):
     x = mantis[i].x - screen_x/pixel_size
     if x < 0:
       x += max_planet_x/pixel_size
-    draw_manti(x, mantis[i].y, timer)
+    if mantis[i].alive != 0:
+      draw_manti(x, mantis[i].y, timer)
     
 
 def draw():
   screen.fill('black')
   screen.draw.text("Hello", topleft=(10,10))
   draw_planet()
-  draw_defender(spacecraft.x, spacecraft.y, spacecraft.dir)
+  if spacecraft.alive != 0:
+    x = spacecraft.x - screen_x / pixel_size
+    if x < 0:
+      x += max_planet_x/pixel_size
+    draw_defender(x, spacecraft.y, spacecraft.dir)
   draw_humans()
   draw_mantis()
   #draw_mutant(100, 40, timer)
