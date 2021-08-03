@@ -33,6 +33,8 @@ timer = 0
 humans = []
 mantis = []
 
+explosions = []
+
 class Sprite:
   x = 0
   y = 0
@@ -40,6 +42,12 @@ class Sprite:
   h = 0
   dir = 1
   alive = 0
+  
+  
+class Explosion:
+  x = 0
+  y = 0
+  t = 0
   
 spacecraft = Sprite()
 
@@ -318,6 +326,26 @@ def draw_bullet(px, py):
   fill_pixel(px, py+1, random_bullet_color())
   fill_pixel(px+1, py, random_bullet_color())
 
+def draw_explosion(px, py, t):
+  fill_pixel(px-t, py, random_burst_color())
+  fill_pixel(px+t, py, random_burst_color())
+  fill_pixel(px, py-t, random_burst_color())
+  fill_pixel(px, py+t, random_burst_color())
+  fill_pixel(px-t, py-t, random_burst_color())
+  fill_pixel(px+t, py-t, random_burst_color())
+  fill_pixel(px-t, py+t, random_burst_color())
+  fill_pixel(px+t, py+t, random_burst_color())
+
+
+
+def add_explosion(x,y):
+  global explosions
+  e = Explosion()
+  e.x = x
+  e.y = y
+  e.t = 0
+  explosions.append(e)
+  
 
 def collide(a, b):
   ax = a.x - a.w/2
@@ -338,19 +366,29 @@ def check_human_spacecraft_collisions():
     if (humans[i].alive != 0) and (spacecraft.alive != 0):
       if collide(humans[i], spacecraft):
         humans[i].alive = 0
-        print("Collision between ship and human", flush=True)
+        add_explosion(humans[i].x, humans[i].y)
+        #print("Collision between ship and human", flush=True)
 
 def check_mantis_spacecraft_collisions():  
   for i in range(0, len(mantis)):
     if (mantis[i].alive != 0) and (spacecraft.alive != 0):
       if collide(mantis[i], spacecraft):
         spacecraft.alive = 0
-        print("Collision between ship and mantis", flush=True)
+        add_explosion(spacecraft.x, spacecraft.y)
+        #print("Collision between ship and mantis", flush=True)
 
 
 def check_collisions():
   check_human_spacecraft_collisions()
   check_mantis_spacecraft_collisions()
+
+def update_explosions():
+  global explosions
+  for i in range(0, len(explosions)):
+    explosions[i].t = explosions[i].t + 1
+  for i in reversed(range(0, len(explosions))):
+    if explosions[i].t > 100:
+      explosions.pop(i)
 
 def update():
   global screen_x
@@ -379,8 +417,13 @@ def update():
   spacecraft.x = ((spacecraft.x*pixel_size + speed_x)%max_planet_x)/pixel_size
   if speed_x < 0:
     speed_x += min(0.1, -speed_x)
+    if spacecraft.alive == 0:
+      speed_x = 0
   elif speed_x > 0:    
     speed_x -= min(0.1, speed_x)
+    if spacecraft.alive == 0:
+      speed_x = 0
+  update_explosions()
   check_collisions()
   timer = timer + 1
 
@@ -400,6 +443,13 @@ def draw_mantis():
     if mantis[i].alive != 0:
       draw_manti(x, mantis[i].y, timer)
     
+def draw_explosions():
+  for i in range(0, len(explosions)):
+    x = explosions[i].x - screen_x/pixel_size
+    if x < 0:
+      x += max_planet_x/pixel_size
+    draw_explosion(x, explosions[i].y, explosions[i].t)
+
 
 def draw():
   screen.fill('black')
@@ -412,6 +462,7 @@ def draw():
     draw_defender(x, spacecraft.y, spacecraft.dir)
   draw_humans()
   draw_mantis()
+  draw_explosions()
   #draw_mutant(100, 40, timer)
   #draw_bullet(120, 40)
   
