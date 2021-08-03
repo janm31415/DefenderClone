@@ -1,6 +1,7 @@
 import pgzrun
 import random
 import math
+import pygame
 
 pixel_size = 3
 
@@ -48,6 +49,8 @@ bullets = []
 
 explosions = []
 
+sounds = []
+
 lives = 3
 
 class Sprite:
@@ -68,6 +71,28 @@ class Explosion:
   t = 0
   
 spacecraft = Sprite()
+
+def init_sounds():
+  global sounds  
+
+  buffer1 = bytearray()
+  for t in range(0, 44100):
+    val = (((t%44100) >> 8) * t) & 255
+    buffer1.append(val)
+  s = pygame.mixer.Sound(buffer=buffer1)
+  sounds.append(s)
+  
+  buffer2 = bytearray()
+  for t in range(0, 70000):
+    val = ((t>>6)*(t>>9)|t>>9)&255
+    buffer2.append(val)
+  s = pygame.mixer.Sound(buffer=buffer2)
+  sounds.append(s)
+
+def play_sound(i):  
+  global sounds
+  sounds[i].play()
+
 
 def init_spacecraft():
   global spacecraft
@@ -399,6 +424,7 @@ def add_explosion(x,y):
   e.y = y
   e.t = 0
   explosions.append(e)
+  play_sound(1)
   
 
 def collide(a, b):
@@ -574,8 +600,7 @@ def reset_spacecraft():
   bullets = []
   explosions = []
   lasers = []
-  
-  
+    
 def spacecraft_shoots_laser():
   global lasers
   global spacecraft
@@ -591,6 +616,7 @@ def spacecraft_shoots_laser():
   laser.y = spacecraft.y  
   laser.h = 2
   lasers.append(laser)
+  play_sound(0)
   
 def get_distance(a, b):
   diff_x = abs(a.x - b.x)
@@ -880,6 +906,7 @@ def draw():
   draw_mutants()
     
 def init_game():
+  init_sounds()
   build_planet()
   init_wave(wave)
   
