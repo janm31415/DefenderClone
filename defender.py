@@ -1,5 +1,6 @@
 import pgzrun
 import random
+import math
 
 pixel_size = 3
 
@@ -37,11 +38,13 @@ space_is_pressed = 0
 
 mantis_speed = 0.5
 mutant_speed = 1
+bullet_speed = 2
 
 humans = []
 mantis = []
 lasers = []
 mutants = []
+bullets = []
 
 explosions = []
 
@@ -55,6 +58,8 @@ class Sprite:
   dir = 1
   alive = 0
   state = 0
+  vx = 0
+  vy = 0
   
   
 class Explosion:
@@ -118,11 +123,13 @@ def init_wave(w):
   global screen_x
   global lasers
   global explosions
+  global bullets
   init_humans(4+w*2)
   init_mantis(4+w*2)
   init_spacecraft()
   lasers = []
   explosions = []
+  bullets = []
   screen_x = 0
 
 def debug(s):
@@ -441,7 +448,13 @@ def check_mutants_spacecraft_collisions():
       if collide(mutants[i], spacecraft):
         spacecraft_dead()
         
-        
+def check_bullet_spacecraft_collisions():
+  global bullets
+  global spacecraft
+  for i in range(0, len(bullets)):
+    if (spacecraft.alive != 0) and collide(bullets[i], spacecraft):
+      spacecraft_dead()
+
 def check_mantis_laser_collisions():
   global score
   global mantis
@@ -470,6 +483,16 @@ def check_mutants_laser_collisions():
           score = score + 200
           lasers.pop(j)
           
+def check_bullet_laser_collisions():
+  global bullets
+  global lasers
+  for i in reversed(range(0, len(bullets))):
+    for j in reversed(range(0, len(lasers))):
+      if collide(bullets[i], lasers[j]):
+        add_explosion(bullets[i].x, bullets[i].y)
+        bullets.pop(i)
+        lasers.pop(j)        
+
 
 def check_human_laser_collisions():
   global score
@@ -495,6 +518,7 @@ def check_mantis_humans_collisions():
 
   
 def check_collisions():
+  check_bullet_laser_collisions()
   check_human_laser_collisions()
   check_mantis_laser_collisions()  
   check_mutants_laser_collisions()  
@@ -502,6 +526,7 @@ def check_collisions():
   check_mantis_spacecraft_collisions()
   check_mutants_spacecraft_collisions()
   check_mantis_humans_collisions()
+  check_bullet_spacecraft_collisions()
 
 def update_explosions():
   global explosions
@@ -539,10 +564,16 @@ def get_number_of_mutants():
       
 def reset_spacecraft():
   global screen_x
+  global bullets
+  global explosions
+  global lasers
   init_spacecraft()
   screen_x = 0
   reset_mantis()
   reset_mutants()
+  bullets = []
+  explosions = []
+  lasers = []
   
   
 def spacecraft_shoots_laser():
@@ -584,6 +615,21 @@ def clamp(x, a, b):
   if x > b:
     return b
   return x    
+  
+def make_bullet(x, y):
+  global bullets
+  global bullet_speed
+  bullet = Sprite()
+  bullet.x = x
+  bullet.y = y
+  bullet.w = 3
+  bullet.h = 3
+  bullet.vx = random.randint(-100,100)
+  bullet.vy = random.randint(-100,100)
+  le = math.sqrt(bullet.vx*bullet.vx + bullet.vy*bullet.vy)
+  bullet.vx *= bullet_speed/le
+  bullet.vy *= bullet_speed/le
+  bullets.append(bullet)
     
 def update_mantis():
   global mantis
@@ -593,6 +639,8 @@ def update_mantis():
   for i in range(0, len(mantis)):
     if mantis[i].alive != 0:
       if mantis[i].state == 0:
+        if random.randint(0, 100) == 0:
+          make_bullet(mantis[i].x, mantis[i].y)
         j = -1
         if (humans[i].alive!=0) and (humans[i].state == 0):
           j = i
@@ -637,6 +685,8 @@ def update_mutants():
   global mutant_speed
   for i in range(0, len(mutants)):
     if mutants[i].alive != 0:
+      if random.randint(0, 75) == 0:
+        make_bullet(mutants[i].x, mutants[i].y)
       px = move_from_to_x(mutants[i], spacecraft)
       py = move_from_to_y(mutants[i], spacecraft)
       if abs(px)>abs(py):
@@ -670,7 +720,19 @@ def update_humans():
         humans[i].state = 0
         score += 500
         
-  
+def update_bullets():
+  global bullets
+  for i in reversed(range(0, len(bullets))):
+    bullets[i].state = bullets[i].state+1    
+    bullets[i].x += bullets[i].vx
+    bullets[i].y += bullets[i].vy
+    if bullets[i].x > max_planet_x/pixel_size:
+      bullets[i].x -= max_planet_x/pixel_size
+    if bullets[i].x < 0:
+      bullets[i].x += max_planet_x/pixel_size
+    if bullets[i].state > 200:
+      bullets.pop(i)
+            
 def get_number_of_enemies():
   nr = get_number_of_mantis()
   nr += get_number_of_mutants()
@@ -724,6 +786,7 @@ def update():
   update_mantis()
   update_mutants()
   update_humans()
+  update_bullets()
   update_explosions()    
   check_collisions()
   if (spacecraft.alive == 0) and not explosions:
@@ -781,6 +844,15 @@ def draw_lasers():
       x += max_planet_x/pixel_size
     draw_laser(x, lasers[i].y, lasers[i].w)
 
+def draw_bullets():
+  global bullets
+  for i in range(0, len(bullets)):
+    x = bullets[i].x - screen_x/pixel_size
+    if x < 0:
+      x += max_planet_x/pixel_size
+    draw_bullet(x, bullets[i].y)
+
+
 
 def draw():
   screen.fill('black')
@@ -804,9 +876,9 @@ def draw():
   draw_mantis()
   draw_explosions()
   draw_lasers()
+  draw_bullets()
   draw_mutants()
-  #draw_bullet(120, 40)
-  
+    
 def init_game():
   build_planet()
   init_wave(wave)
